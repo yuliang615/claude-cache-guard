@@ -757,6 +757,8 @@ async function commandDisable(args) {
   if (slashError) {
     console.log(`slash commands: NOT removed — ${slashError.message}. Remove .claude/commands/ccg*.md manually if needed.`);
     process.exitCode = 1;
+  } else if (slashResult.skippedGlobalDir) {
+    console.log(`slash commands: kept ${slashResult.commandsDir} (this project is the home directory, so that IS the global /ccg* command set — ccg uninstall removes it)`);
   } else {
     console.log(`slash commands: ${slashRemovedCount > 0 ? `removed ${slashRemovedCount}` : "not found"} ${slashResult.commandsDir}`);
     for (const entry of slashResult.results) {

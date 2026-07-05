@@ -609,6 +609,29 @@ function getGlobalSlashCommandsDir(homeDir) {
   return defaultPaths(homeDir).commandsDir;
 }
 
+// The home directory is a legitimate project (claude launched in ~), and its
+// "project-local" .claude/commands IS ~/.claude/commands — the global dir.
+// Every project-scoped sweep must recognize that identity: treating the global
+// set as "project-local leftovers" would delete every /ccg* command, including
+// /ccgenable itself, out from under the running session.
+// realpath (with a resolve fallback for not-yet-existing dirs) so a symlinked
+// home (/tmp vs /private/tmp on macOS) still compares equal.
+async function resolveDirIdentity(dir) {
+  try {
+    return await fs.promises.realpath(dir);
+  } catch {
+    return path.resolve(dir);
+  }
+}
+
+export async function projectCommandsDirIsGlobal({ cwd = process.cwd(), homeDir } = {}) {
+  const [projectDir, globalDir] = await Promise.all([
+    resolveDirIdentity(getSlashCommandsDir(cwd)),
+    resolveDirIdentity(getGlobalSlashCommandsDir(homeDir))
+  ]);
+  return projectDir === globalDir;
+}
+
 // Slash commands are global now: `ccg install` writes them under
 // ~/.claude/commands so every project sees them. The project-local writer is
 // gone; only the project-local REMOVER survives (as removeProjectSlashCommands)
@@ -636,8 +659,12 @@ export async function globalSlashCommandsInstalled({ homeDir } = {}) {
   return false;
 }
 
-export async function countProjectSlashCommands({ cwd = process.cwd() } = {}) {
+export async function countProjectSlashCommands({ cwd = process.cwd(), homeDir } = {}) {
   const dir = getSlashCommandsDir(cwd);
+  // Home-directory project: these files are the GLOBAL set, not per-project
+  // leftovers, so the leftover count (enable's "kept N" message, doctor's
+  // stale-copy check) must not see them.
+  if (await projectCommandsDirIsGlobal({ cwd, homeDir })) return 0;
   let count = 0;
   for (const name of [...SLASH_COMMAND_NAMES, ...LEGACY_SLASH_COMMAND_NAMES]) {
     if (await lstatIfExists(path.join(dir, `${name}.md`))) count += 1;
@@ -651,10 +678,17 @@ export async function countProjectSlashCommands({ cwd = process.cwd() } = {}) {
 
 // Migration cleaner: remove ccg command files left in a project's local
 // .claude/commands by older ccg versions that installed them per-project.
-export async function removeProjectSlashCommands({ cwd = process.cwd() } = {}) {
+export async function removeProjectSlashCommands({ cwd = process.cwd(), homeDir } = {}) {
+  const commandsDir = getSlashCommandsDir(cwd);
+  // Home-directory project: this dir IS the global command set. Sweeping it
+  // here (enable's migration, disable's cleanup) would be self-deletion;
+  // removing the global set is ccg uninstall's job, never a project sweep's.
+  if (await projectCommandsDirIsGlobal({ cwd, homeDir })) {
+    return { commandsDir, results: [], skippedGlobalDir: true };
+  }
   // cleanupParent:true — a project-local .claude that ends up empty (disable
   // already removed settings.local.json) should not be stranded.
-  return removeSlashCommandsFromDir(getSlashCommandsDir(cwd), { cleanupParent: true });
+  return removeSlashCommandsFromDir(commandsDir, { cleanupParent: true });
 }
 
 async function writeSlashCommandsToDir(commandsDir) {
