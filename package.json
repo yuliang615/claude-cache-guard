@@ -1,6 +1,6 @@
 {
   "name": "claude-cache-guard",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Local-only Claude Code statusLine guard that prompts a compact session handoff before your 5-hour usage limit resets, avoiding a cold-cache token spike.",
   "type": "module",
   "bin": {
