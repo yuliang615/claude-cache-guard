@@ -1,0 +1,19 @@
+node_modules/
+npm-debug.log*
+.DS_Store
+coverage/
+*.tgz
+
+# Local runtime artifacts produced by the guard itself.
+# These are per-machine / per-checkout state, not source, and must never be committed.
+.claude-cache-guard.json
+.claude/settings.local.json
+.claude/commands/
+.claude/ccg-handoff.md
+.claude/ccg-handoff.md.bak
+usage-state.json
+
+# Kept locally but intentionally not tracked / pushed to GitHub
+/CLAUDE.md
+/CHANGELOG.md
+/docs/qa-feature-matrix.md

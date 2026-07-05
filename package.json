@@ -1,0 +1,49 @@
+{
+  "name": "claude-cache-guard",
+  "version": "0.1.0",
+  "description": "Local-only Claude Code statusLine guard that prompts a compact session handoff before your 5-hour usage limit resets, avoiding a cold-cache token spike.",
+  "type": "module",
+  "bin": {
+    "claude-cache-guard": "./bin/claude-cache-guard.js",
+    "ccg": "./bin/claude-cache-guard.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "scripts/",
+    "README.md",
+    "README.zh-TW.md",
+    "README.zh-CN.md",
+    "docs/REFERENCE.md",
+    "docs/REFERENCE.zh-TW.md",
+    "docs/REFERENCE.zh-CN.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "lint": "node --check bin/claude-cache-guard.js && find src test -name '*.js' -print0 | xargs -0 -n1 node --check",
+    "prepublishOnly": "npm test && npm run lint"
+  },
+  "keywords": [
+    "claude-code",
+    "statusline",
+    "usage",
+    "rate-limit",
+    "handoff",
+    "session-handoff",
+    "cli"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yuliang615/claude-cache-guard.git"
+  },
+  "homepage": "https://github.com/yuliang615/claude-cache-guard#readme",
+  "bugs": {
+    "url": "https://github.com/yuliang615/claude-cache-guard/issues"
+  },
+  "author": "yuliang615 <yuliangweb03@gmail.com>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}
